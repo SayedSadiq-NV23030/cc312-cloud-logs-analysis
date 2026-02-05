@@ -34,16 +34,22 @@ def parse_line(line: str):
     timestamp | level | service | message
     """
     # TODO 1: strip whitespace and ignore empty lines (treat empty as invalid)
+    line = line.strip()
+    if not line:
+        return None
     # TODO 2: split by '|' and trim whitespace around each part
+    parts = [p.strip() for p in line.split('|')]
     # TODO 3: if you do NOT have exactly 4 parts, return None
+    if len(parts) != 4:
+        return None
     # TODO 4: return the 4 parts (timestamp, level, service, message)
-    pass
+    return tuple(parts)
 
 
 def normalize_level(level: str) -> str:
     """Normalize log level to uppercase."""
     # TODO 5: return level in uppercase (hint: .upper())
-    pass
+    return level.upper()
 
 
 def main():
@@ -64,22 +70,37 @@ def main():
         return
 
     # TODO 6: open logs.txt and loop through each line
-    # For each line:
-    #   - increase total_lines
-    #   - parse the line using parse_line()
-    #   - if parse_line() returns None -> invalid_lines += 1 and continue
-    #   - normalize the level
-    #   - if level in ALLOWED_LEVELS -> level_counts[level] += 1
-    #   - else -> level_counts["INVALID_LEVEL"] += 1
+    with LOG_FILE.open("r", encoding="utf-8") as f:
+        for line in f:
+            total_lines += 1
+            parsed = parse_line(line)
+            if parsed is None:
+                invalid_lines += 1
+                continue
+            timestamp, level, service, message = parsed
+            norm_level = normalize_level(level)
+            if norm_level in ALLOWED_LEVELS:
+                level_counts[norm_level] += 1
+            else:
+                level_counts["INVALID_LEVEL"] += 1
 
     # TODO 7: Create a summary string (multi-line) with:
     # Total lines, Invalid lines, INFO, WARN, ERROR, INVALID_LEVEL
+    summary = (
+        f"Total lines: {total_lines}\n"
+        f"Invalid lines: {invalid_lines}\n"
+        f"INFO: {level_counts['INFO']}\n"
+        f"WARN: {level_counts['WARN']}\n"
+        f"ERROR: {level_counts['ERROR']}\n"
+        f"INVALID_LEVEL: {level_counts['INVALID_LEVEL']}"
+    )
 
     # TODO 8: Print the summary
+    print(summary)
 
     # TODO 9: Save the summary into period1_report.txt
-
-    pass
+    with OUTPUT_REPORT.open("w", encoding="utf-8") as out:
+        out.write(summary + "\n")
 
 
 if __name__ == "__main__":
